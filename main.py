@@ -46,6 +46,10 @@ def predict(inp: str):
     for chunk in chunks:
         message_history.append({"role": "user", "content": f"{chunk}"})
 
+    # purge old messages if message_history limit is reached
+    while len(message_history) > 22:
+        message_history.pop(0)
+
     try:
         completion = ai.ChatCompletion.create(
             model="gpt-3.5-turbo",

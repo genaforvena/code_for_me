@@ -13,7 +13,7 @@ class TestPredict(TestCase):
         mock_create.return_value.choices[0].message.content = "Hello, how can I help you today?"
 
         predict("Hi")
-        self.assertEqual(len(message_history), 4)
+        self.assertEqual(len(message_history), 2)
         self.assertEqual(message_history[-1]["content"], "Hello, how can I help you today?")
 
     def test_read_file(self):

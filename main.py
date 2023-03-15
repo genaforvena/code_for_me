@@ -4,15 +4,12 @@ import os
 
 api_key = os.environ.get("OPENAI_API_KEY")
 
-if not api_key:
-    print("OpenAI API key not found. Please do export OPENAI_API_KEY=<your_api_key> and try again.")
-    exit()
-
 message_history = [
-    {"role": "user", "content": "I'll send you my code file by file and you'll understand and remember it. "
-                                "Some of them might be divided into multiple messages."
-                                "The code will be enclosed in triple backticks like this ```. "
-                                "After that I'll be asking you questions about the code. And you will reply my with code snippets. "
+    {"role": "user", "content": "I'll send you the code. "
+                                "The content might be divided into multiple messages."
+                                "The contents will be enclosed in triple backticks like this ```. "
+                                "After that I'll be asking you questions about the code. "
+                                "You will be answering with code snippets as much as possible. "
                                 "Say OK if you understood"},
     {"role": "assistant", "content": "OK"}
 ]
@@ -23,7 +20,7 @@ def predict(inp: str):
         print("Please input a valid message.")
         return
 
-    CHUNK_SIZE = 3500
+    CHUNK_SIZE = 2048
     chunks = []
     # tokenize the new input sentence
     if len(inp) > CHUNK_SIZE:
@@ -48,7 +45,7 @@ def predict(inp: str):
         message_history.append({"role": "user", "content": f"{chunk}"})
 
     # purge old messages if message_history limit is reached
-    while len(message_history) > 22:
+    while len(message_history) > 24:
         message_history.pop(0)
 
     try:
@@ -60,14 +57,6 @@ def predict(inp: str):
         reply_content = completion.choices[0].message.content
 
         message_history.append({"role": "assistant", "content": f"{reply_content}"})
-
-        # get pairs of msg["content"] from message history, skipping the pre-prompt here.
-        response = [(message_history[i]["content"], message_history[i + 1]["content"]) for i in
-                    range(max(0, len(message_history) - 2), len(message_history) - 1)]
-        # Convert response to an iterable of dictionaries and add to conversation history
-        for pair in response:
-            message_history.append({"role": "assistant", "content": f"{pair[0]}"})
-            message_history.append({"role": "user", "content": f"{pair[1]}"})
 
         # Print the reply
         print("\n")
@@ -99,6 +88,9 @@ def read_file(file):
 
 
 if __name__ == "__main__":
+    if not api_key:
+        print("OpenAI API key not found. Please do export OPENAI_API_KEY=<your_api_key> and try again.")
+        exit()
     ai.api_key = api_key
 
     while True:

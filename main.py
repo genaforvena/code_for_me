@@ -12,7 +12,8 @@ message_history = [
     {"role": "user", "content": "I'll send you my code file by file and you'll understand and remember it. "
                                 "Some of them might be divided into multiple messages."
                                 "The code will be enclosed in triple backticks like this ```. "
-                                "After that I'll be asking you questions about the code. And you will reply my with code snippets. Say OK if you understood"},
+                                "After that I'll be asking you questions about the code. And you will reply my with code snippets. "
+                                "Say OK if you understood"},
     {"role": "assistant", "content": "OK"}
 ]
 

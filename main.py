@@ -114,6 +114,7 @@ def summarize_text(text):
 
     # Combine the summaries into a single text
     final_summary = CHUNK_DELIMITER.join(summaries)
+    print("\n\n\n\n")
     print(f"Final summary: {final_summary}")
 
     # If the final summary is too long, recursively summarize it again

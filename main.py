@@ -115,7 +115,7 @@ def summarize_text(text):
     # Combine the summaries into a single text
     final_summary = CHUNK_DELIMITER.join(summaries)
     print("\n\n\n\n")
-    print(f"Final summary: {final_summary}")
+    print(f"Intermediate summary: {final_summary}")
 
     # If the final summary is too long, recursively summarize it again
     if len(final_summary) > MAX_CHUNK_SIZE:
@@ -199,6 +199,8 @@ if __name__ == "__main__":
             file_contents = read_text_file(filename)
             if file_contents is not None:
                 summary = summarize_text(file_contents)
+                print("\n\n\n\n")
+                print("Final summary: ")
                 print(summary)
         else:
             predict(user_input)

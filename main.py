@@ -68,7 +68,95 @@ def predict(inp: str):
     except Exception as e:
         print(f"Unexpected error: {e}")
 
-def read_file(file):
+
+def summarize_text(text):
+    print(f"Summarizing text: {text}")
+    MAX_CHUNK_SIZE = 2056  # Maximum size of each chunk of text that can be summarized by the model
+    CHUNK_DELIMITER = "\n"  # Delimiter to use between chunks of text
+
+    # Divide the text into chunks that can be summarized by the model without hitting the token limit
+    chunks = []
+    current_chunk = ""
+    for sentence in text.split("."):
+        if len(current_chunk + "." + sentence) <= MAX_CHUNK_SIZE:
+            current_chunk += "." + sentence
+        else:
+            chunks.append(current_chunk[1:])  # Remove the leading period
+            current_chunk = sentence
+
+    # Append any remaining sentence
+    if current_chunk:
+        chunks.append(current_chunk[1:])
+
+    # Generate summaries for each chunk of text
+    summaries = []
+    for chunk in chunks:
+        print("\n\n")
+        print("Generating summary for chunk...")
+        context = [
+            {"role": "user", "content": "I'll send you the text. "
+                                        "Please summarize the following text in one or two sentences. "
+                                        "Say OK if you understood"},
+            {"role": "assistant", "content": "OK"},
+            {"role": "user", "content": f"{chunk}"},
+        ]
+        print("Chunk: " + chunk)
+        completion = ai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=context,
+        )
+        summary = completion.choices[0].message.content
+        print("\n")
+        print(f"Summary: {summary}")
+        summaries.append(summary)
+        print("\n")
+        print("Summaries: " + str(summaries))
+
+    # Combine the summaries into a single text
+    final_summary = CHUNK_DELIMITER.join(summaries)
+    print(f"Final summary: {final_summary}")
+
+    # If the final summary is too long, recursively summarize it again
+    if len(final_summary) > MAX_CHUNK_SIZE:
+        return summarize_text(final_summary)
+
+    context = [
+        {"role": "user", "content": "I'll send you the text. "
+                                    "Please summarize it into 500 words or something around like that."
+                                    "Please keep the main points in the text and try to avoid repeating the same points."
+                                    "Say OK if you understood"},
+        {"role": "assistant", "content": "OK"},
+        {"role": "user", "content": f"{final_summary}"},
+    ]
+
+    completion = ai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=context,
+    )
+
+    final_summary = completion.choices[0].message.content
+
+    return final_summary
+
+
+def read_text_file(file):
+    try:
+        with open(file, 'rb') as f:
+            result = chardet.detect(f.read())
+            encoding = result['encoding']
+            if not encoding:
+                print(f"Unable to determine encoding for {file}, skipping...")
+                return None
+            with open(file, 'r', encoding=encoding) as fl:
+                return fl.read()
+    except FileNotFoundError:
+        print(f"File {file} not found.")
+    except Exception as e:
+        print(f"Unexpected error while reading file {file}: {e}")
+    return None
+
+
+def read_code_file(file):
     try:
         with open(file, 'rb') as f:
             result = chardet.detect(f.read())
@@ -101,8 +189,15 @@ if __name__ == "__main__":
 
         if user_input.lower() == "load_file":
             filename = input("Enter file name: ")
-            file_contents = read_file(filename)
+            file_contents = read_code_file(filename)
             if file_contents is not None:
                 predict(file_contents)
+
+        if user_input.lower() == "summarize_text":
+            filename = input("Enter file name: ")
+            file_contents = read_text_file(filename)
+            if file_contents is not None:
+                summary = summarize_text(file_contents)
+                print(summary)
         else:
             predict(user_input)
